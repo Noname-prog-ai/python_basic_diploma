@@ -1,0 +1,104 @@
+import logging
+import os
+from telegram import Update
+from telegram.ext import Updater, CommandHandler, CallbackContext
+from peewee import SqliteDatabase, Model, CharField, DateTimeField
+import datetime
+from api_requests import fetch_lowprice, fetch_guestrating, fetch_bestdeal
+
+# Настройка базы данных
+db = SqliteDatabase('history.db')
+
+
+class SearchHistory(Model):
+    user_id = CharField()
+    city = CharField()
+    date = DateTimeField(default=datetime.datetime.now)
+    details = CharField()
+
+    class Meta:
+        database = db
+
+
+db.connect()
+db.create_tables([SearchHistory], safe=True)
+
+# Настройка логирования
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+# Функции команд
+def start(update: Update, _: CallbackContext):
+    update.message.reply_text('Привет! Я телеграм-бот для поиска отелей! Введите /help для получения помощи.')
+
+
+def help_command(update: Update, _: CallbackContext):
+    update.message.reply_text(
+        '/lowprice - показать доступные отели\n'
+        '/guestrating - показать самые популярные отели\n'
+        '/bestdeal - показать отели, ближе всего к центру\n'
+        '/history - просмотреть историю поисков'
+    )
+
+
+def lowprice(update: Update, _: CallbackContext):
+    city = "Москва"  # Здесь можно добавить логику для ввода города
+    hotels = fetch_lowprice(city)
+
+    if hotels:
+        message = "\n".join([f"{hotel['name']}: {hotel['price']} RUB" for hotel in hotels])
+        update.message.reply_text(message)
+    else:
+        update.message.reply_text("Нет доступных отелей или ошибка при запросе.")
+
+
+def guestrating(update: Update, _: CallbackContext):
+    city = "Москва"
+    hotels = fetch_guestrating(city)
+
+    if hotels:
+        message = "\n".join([f"{hotel['name']}: Рейтинг {hotel['rating']}" for hotel in hotels])
+        update.message.reply_text(message)
+    else:
+        update.message.reply_text("Нет данных о популярных отелях или ошибка при запросе.")
+
+
+def bestdeal(update: Update, _: CallbackContext):
+    city = "Москва"
+    hotels = fetch_bestdeal(city)
+
+    if hotels:
+        message = "\n".join([f"{hotel['name']}: Ближе всего к центру - {hotel['price']} RUB" for hotel in hotels])
+        update.message.reply_text(message)
+    else:
+        update.message.reply_text("Нет данных об отелях ближе к центру или ошибка при запросе.")
+
+
+def history(update: Update, _: CallbackContext):
+    user_id = update.message.from_user.id
+    histories = SearchHistory.select().where(SearchHistory.user_id == user_id)
+    if histories:
+        message = '\n'.join([f'{record.date}: {record.city} - {record.details}' for record in histories])
+        update.message.reply_text(message)
+    else:
+        update.message.reply_text('История поиска пуста.')
+
+# Основная функция
+def main():
+    updater = Updater(os.getenv("TELEGRAM_BOT_TOKEN"))
+
+    dp = updater.dispatcher
+
+    dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CommandHandler("help", help_command))
+    dp.add_handler(CommandHandler("lowprice", lowprice))
+    dp.add_handler(CommandHandler("guestrating", guestrating))
+    dp.add_handler(CommandHandler("bestdeal", bestdeal))
+    dp.add_handler(CommandHandler("history", history))
+
+    updater.start_polling()
+    updater.idle()
+
+if __name__ == '__main__':
+    main()
