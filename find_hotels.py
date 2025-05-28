@@ -444,4 +444,4 @@ def show_final_data(message: telebot.types.Message):
     history.add_user_data(user.user_id, user.command, user.request_time, text_for_database)
 
     return bot.send_message(message.chat.id,
-                            f"Поиск завершен.\nНайдено предложений: {len(user.list_of_hotels_id)}")
+                            f"Поиск завершен.\nНайдено предложений: {len(user.list_of_hotels_id)}") 
