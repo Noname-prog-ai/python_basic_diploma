@@ -71,4 +71,4 @@ def show_history(message: telebot.types.Message) -> None:
             history_to_show = f"Команда: {data.user_command}\n" \
                               f"Дата и время обращения: {data.user_time_request}\n" \
                               f"Список найденных отелей:\n{to_use_literals(data.user_hotels_list)}"
-            bot.send_message(user.user_id, history_to_show)
+            bot.send_message(user.user_id, history_to_show) 
