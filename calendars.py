@@ -61,4 +61,3 @@ def handle_departure_date(call):
         bot.send_message(call.message.chat.id, f"Дата выезда {user.departure_date}")
         bot.delete_message(call.message.chat.id, call.message.message_id)
         return find_hotels.show_or_not_to_show_hotels_photo(call.message)
-
