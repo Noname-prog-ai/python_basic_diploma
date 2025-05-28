@@ -18,4 +18,4 @@ my_db = MySQLDatabase(
     password=config("DB_password"),
     host='localhost',
     port=int(config("DB_port"))
-)
+) 
