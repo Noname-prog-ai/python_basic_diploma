@@ -27,4 +27,4 @@ class User:
         if user_id in cls.all_users:
             return cls.all_users[user_id]
         User(user_id=user_id)
-        return cls.all_users[user_id]
+        return cls.all_users[user_id] 
