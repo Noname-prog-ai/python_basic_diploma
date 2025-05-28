@@ -42,4 +42,4 @@ def get_started(message) -> None:
 
 if __name__ == '__main__':
     history.create_db()
-    bot.polling(none_stop=True)
+    bot.polling(none_stop=True) 
